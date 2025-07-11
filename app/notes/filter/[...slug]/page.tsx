@@ -1,45 +1,41 @@
-import { Metadata } from "next";
-import NotesClient from "./Notes.client";
-import { fetchNotes } from "@/lib/api";
+import {fetchNotes} from '@/lib/api';
+import Notes from './Notes.client';
+import {Metadata} from "next";
 
-interface PageProps {
-  params: Promise<{ slug: string[] }>;
-}
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const tag = slug?.[0] ?? "All";
-  const capitalizedTag = tag.charAt(0).toUpperCase() + tag.slice(1);
-  return {
-    title: `${capitalizedTag} – Notes | NoteHub`,
-    description: `Notes list with tag "${capitalizedTag}" in NoteHub.`,
-    openGraph: {
-      title: `${capitalizedTag} – Notes | NoteHub`,
-      description: `Notes list with tag "${capitalizedTag}" in NoteHub.`,
-      url: `https://08-zustand-3u212ijf9-igors-projects-2fd4204a.vercel.app/notes/filter/${tag}`,
-      images: [
-        {
-          url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
-          width: 1200,
-          height: 630,
-          alt: "NoteHub Preview",
+type FilterPageParams = { slug?: string[] };
+
+export async function generateMetadata({params}: { params: Promise<FilterPageParams> }): Promise<Metadata> {
+    const {slug} = await params;
+    const tag = slug?.[0] || 'All';
+    const capitalizedTag = tag.charAt(0).toUpperCase() + tag.slice(1);
+
+    const title = `NoteHub – Filter: ${capitalizedTag}`;
+    const description = `Viewing notes in the "${capitalizedTag}".`;
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            url: `https://08-zustand-3u212ijf9-igors-projects-2fd4204a.vercel.app/notes/filter/${tag}`,
+            images: [
+                {
+                    url: 'https://ac.goit.global/fullstack/react/notehub-og-meta.jpg',
+                    width: 1200,
+                    height: 630,
+                    alt: 'NoteHub – Filtered Notes',
+                },
+            ],
         },
-      ],
-    },
-  };
+    };
 }
 
-export default async function NotesPage({ params }: PageProps) {
-  const { slug } = await params;
+export default async function FilteredNotesPage({params}: { params: Promise<FilterPageParams> }) {
+    const {slug} = await params;
+    const tag = slug?.[0] ?? null;
 
-  const tag = slug?.[0] ?? "All";
+    const data = await fetchNotes('', 1, 12, tag);
 
-  const initialData = await fetchNotes({
-    page: 1,
-    perPage: 12,
-    tag: tag === "All" ? undefined : tag,
-  });
-
-  return <NotesClient tag={tag} initialData={initialData} />;
+    return <Notes tag={tag} initialData={data}/>;
 }

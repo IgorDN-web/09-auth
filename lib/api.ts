@@ -1,86 +1,52 @@
 import axios from 'axios';
-import type { Note } from '../types/note';
-
+import type {CreateNote, Note} from '@/types/note';
 
 const BASE_URL = 'https://notehub-public.goit.study/api';
-const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
+const TOKEN = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
 
-const getAuthHeaders = () => {
-  if (!token) {
-    throw new Error('Authorization token is missing. Please set NEXT_PUBLIC_NOTEHUB_TOKEN.');
-  }
-
-  return {
+const instance = axios.create({
+    baseURL: BASE_URL,
     headers: {
-      Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${TOKEN}`,
     },
-  };
-};
+});
 
-export interface FetchNotesParams {
-  page?: number;
-  perPage?: number;
-  search?: string;
-  tag?: string;
-}
+export const fetchNotes = async (
+    search: string,
+    page: number,
+    perPage = 12,
+    tag?: string | null
+): Promise<{ notes: Note[]; totalPages: number }> => {
+    const params: Record<string, string | number> = {
+        page,
+        perPage,
+    };
 
-export interface FetchNotesResponse {
-  notes: Note[];
-  totalPages: number;
-}
+    if (search.trim()) {
+        params.search = search;
+    }
 
-export interface NewNotePayload {
-  title: string;
-  content?: string;
-  tag: Note['tag'];
-}
+    if (tag && tag !== 'All') {
+        params.tag = tag;
+    }
 
-export const fetchNotes = async ({
-  page = 1,
-  perPage = 12,
-  search = '',
-  tag,
-}: Partial<FetchNotesParams> = {}): Promise<FetchNotesResponse> => {
-  const params = new URLSearchParams({
-    page: String(page),
-    perPage: String(perPage),
-  });
-
-  if (search.trim()) params.append('search', search.trim());
-  if (tag) params.append('tag', tag);
-
-  const response = await axios.get<FetchNotesResponse>(
-    `${BASE_URL}/notes?${params.toString()}`,
-    getAuthHeaders()
-  );
-
-  return response.data;
+    const response = await instance.get('/notes', {params});
+    return response.data;
 };
 
 export const createNote = async (
-  note: NewNotePayload
+    noteData: CreateNote
 ): Promise<Note> => {
-  const response = await axios.post<Note>(
-    `${BASE_URL}/notes`,
-    note,
-    getAuthHeaders()
-  );
-  return response.data;
+    const response = await instance.post<Note>('/notes', noteData);
+    return response.data;
 };
 
-export const deleteNote = async (
-  id: number
-): Promise<Note> => {
-  const response = await axios.delete<Note>(
-    `${BASE_URL}/notes/${id}`,
-    getAuthHeaders()
-  );
-  return response.data;
+export const deleteNote = async (id: number): Promise<Note> => {
+    const response = await instance.delete<Note>(`/notes/${id}`);
+    return response.data;
 };
+
 export const fetchNoteById = async (id: number): Promise<Note> => {
-  const response = await axios.get<Note>(
-    `${BASE_URL}/notes/${id}`,
-    getAuthHeaders()
-  );
-  return response.data;
+    const response = await instance.get<Note>(`/notes/${id}`);
+    return response.data;
 };

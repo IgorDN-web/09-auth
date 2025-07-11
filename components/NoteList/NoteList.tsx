@@ -1,57 +1,55 @@
-'use client';
-
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { deleteNote } from '@/lib/api';
-import type { Note } from '../../types/note';
 import css from './NoteList.module.css';
-import Link from 'next/link';
+import type {Note} from '@/types/note';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {deleteNote} from '@/lib/api';
+import {useState} from 'react';
+import Link from "next/link";
 
 interface NoteListProps {
-  notes: Note[];
+    notes: Note[];
 }
 
-const NoteList = ({ notes }: NoteListProps) => {
-  const queryClient = useQueryClient();
+export default function NoteList({notes}: NoteListProps) {
+    const queryClient = useQueryClient();
+    const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const {
-    mutate: deleteMutation,
-    isPending,
-    variables,
-  } = useMutation({
-    mutationFn: (id: number) => deleteNote(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-    },
-    onError: error => {
-      console.error('Failed to delete note:', error);
-    },
-  });
+    const {mutate} = useMutation({
+        mutationFn: deleteNote,
+        onMutate: (id: number) => setDeletingId(id),
+        onSettled: () => setDeletingId(null),
+        onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ['notes']});
+        },
+    });
 
-  if (notes.length === 0) return null;
-
-  return (
-    <ul className={css.list}>
-      {notes.map(note => (
-        <li key={note.id} className={css.listItem}>
-          <h2 className={css.title}>{note.title}</h2>
-          <p className={css.content}>{note.content}</p>
-          <div className={css.footer}>
-            <span className={css.tag}>{note.tag}</span>
-            <Link href={`/notes/${note.id}`} className={css.link}>
-              View details
-            </Link>
-            <button
-              className={css.button}
-              onClick={() => deleteMutation(note.id)}
-              disabled={isPending && variables === note.id}
-            >
-              {isPending && variables === note.id ? 'Deleting...' : 'Delete'}
-            </button>
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
-};
-
-export default NoteList;
+    return (
+        <ul className={css.list}>
+            {notes.map((note) => (
+                <li key={note.id} className={css.listItem}>
+                    {deletingId === note.id ? (
+                        <p>Deleting...</p>
+                    ) : (
+                        <>
+                            <h2 className={css.title}>{note.title}</h2>
+                            <p className={css.content}>{note.content}</p>
+                            <div className={css.footer}>
+                                <span className={css.tag}>{note.tag}</span>
+                                <div>
+                                    <Link href={`/notes/${note.id}`} className={css.link} scroll={false}>
+                                        View details
+                                    </Link>
+                                    <button onClick={() => mutate(note.id)}
+                                            className={css.button}
+                                            disabled={deletingId === note.id}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </li>
+            ))}
+        </ul>
+    );
+}

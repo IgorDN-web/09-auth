@@ -1,48 +1,38 @@
 'use client';
 
-import { useState } from 'react';
-import css from './TagsMenu.module.css';
-import { TAGS } from '@/lib/constants';
+import {useState} from 'react';
 import Link from 'next/link';
+import css from './TagsMenu.module.css';
+
+const TAGS: string[] = ['All', 'Todo', 'Work', 'Personal', 'Meeting', 'Shopping'];
 
 export default function TagsMenu() {
-  const [isOpen, setIsOpen] = useState(false);
-  const toggleMenu = () => setIsOpen(prev => !prev);
-  const closeMenu = () => setIsOpen(false);
+    const [open, setOpen] = useState(false);
 
-  return (
-    <div className={css.menuContainer}>
-      <button
-        className={css.menuButton}
-        onClick={toggleMenu}
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        aria-controls="tags-menu"
-      >
-        Notes ▾
-      </button>
+    return (
+        <div className={css.menuContainer}>
+            <button
+                className={css.menuButton}
+                onClick={() => setOpen(prev => !prev)}
+            >
+                Notes ▾
+            </button>
 
-      {isOpen && (
-        <ul
-          id="tags-menu"
-          role="menu"
-          className={css.menuList}
-          aria-label="Tag filter menu"
-        >
-          {TAGS.map(tag => (
-            <li key={tag} role="none" className={css.menuItem}>
-              <Link
-                href={`/notes/filter/${tag}`}
-                role="menuitem"
-                className={css.menuLink}
-                onClick={closeMenu}
-              >
-                {tag}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
+            {open && (
+                <ul className={css.menuList}>
+                    {TAGS.map((tag: string) => (
+                        <li key={tag} className={css.menuItem}>
+                            <Link
+                                href={`/notes/filter/${tag}`}
+                                className={css.menuLink}
+                                onClick={() => setOpen(false)}
+                            >
+                                {tag}
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </div>
+    );
 }

@@ -1,53 +1,46 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { fetchNoteById } from '@/lib/api';
-import { useRouter } from 'next/navigation';
+import {useRouter} from 'next/navigation';
+import {useQuery} from '@tanstack/react-query';
+import {fetchNoteById} from '@/lib/api';
+import type {Note} from '@/types/note';
 import Modal from '@/components/Modal/Modal';
 import css from './NotePreview.module.css';
 
-interface NotePreviewModalProps {
-  id: number;
+interface NotePreviewProps {
+    id: string;
 }
 
-export default function NotePreviewModal({ id }: NotePreviewModalProps) {
-  const router = useRouter();
+export default function NotePreview({id}: NotePreviewProps) {
+    const router = useRouter();
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['note', id],
-    queryFn: () => fetchNoteById(id),
-    refetchOnMount: false,
-  });
+    const {data, isLoading, isError} = useQuery<Note>({
+        queryKey: ['note', id],
+        queryFn: () => fetchNoteById(Number(id)),
+        refetchOnMount: false,
+    });
 
-  const handleClose = () => router.back();
+    const handleClose = () => {
+        router.back();
+    };
 
-  if (isLoading) return <Modal onClose={handleClose}>Loading...</Modal>;
-  if (isError || !data)
-    return <Modal onClose={handleClose}>Note not found</Modal>;
+    if (isLoading) return <p>Loading note...</p>;
+    if (isError || !data) return <p>Note not found.</p>;
 
-  return (
-    <Modal onClose={handleClose}>
-      <div className={css.container}>
-        <div className={css.header}>
-          <h2>{data.title}</h2>
-          <button onClick={handleClose} className={css.backBtn}>
-            ✖
-          </button>
-        </div>
-
-        <div className={css.content}>
-          {data.content.length > 150
-            ? `${data.content.slice(0, 150)}...`
-            : data.content}
-        </div>
-
-        <div className={css.footer}>
-          <p className={css.date}>
-            {new Date(data.createdAt).toLocaleString()}
-          </p>
-          <span className={css.tag}>{data.tag}</span>
-        </div>
-      </div>
-    </Modal>
-  );
+    return (
+        <Modal onClose={handleClose}>
+            <div className={css.container}>
+                <div className={css.item}>
+                    <div className={css.header}>
+                        <h2>{data.title}</h2>
+                        <span className={css.tag}>{data.tag}</span>
+                    </div>
+                    <div className={css.content}>{data.content}</div>
+                    <div className={css.date}>
+                        {new Date(data.createdAt).toLocaleString()}
+                    </div>
+                </div>
+            </div>
+        </Modal>
+    );
 }

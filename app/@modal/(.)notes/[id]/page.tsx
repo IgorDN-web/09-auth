@@ -1,32 +1,22 @@
-import { fetchNoteById } from '@/lib/api';
-import {
-  QueryClient,
-  dehydrate,
-  HydrationBoundary,
-} from '@tanstack/react-query';
-import NotePreviewModal from './NotePreview.client';
+import {dehydrate, HydrationBoundary, QueryClient} from '@tanstack/react-query';
+import {fetchNoteById} from '@/lib/api';
+import NotePreview from './NotePreview.client';
 
-interface PageProps {
-  params: Promise<{ id: string }>;
+export default async function ModalNotePage({params}: { params: Promise<{ id: string }> }) {
+    const {id} = await params;
+    const queryClient = new QueryClient();
+
+    await queryClient.prefetchQuery({
+        queryKey: ['note', Number(id)],
+        queryFn: () => fetchNoteById(Number(id)),
+    });
+
+    const dehydratedState = dehydrate(queryClient);
+
+    return (
+        <HydrationBoundary state={dehydratedState}>
+            <NotePreview id={id}/>
+        </HydrationBoundary>
+    );
 }
 
-export default async function NotePreviewModalPage({ params }: PageProps) {
-  const { id } = await params;
-  const noteId = Number(id);
-  if (isNaN(noteId)) throw new Error('Invalid note ID');
-
-  const queryClient = new QueryClient();
-
-  await queryClient.prefetchQuery({
-    queryKey: ['note', noteId],
-    queryFn: () => fetchNoteById(noteId),
-  });
-
-  const dehydratedState = dehydrate(queryClient);
-
-  return (
-    <HydrationBoundary state={dehydratedState}>
-      <NotePreviewModal id={noteId} />
-    </HydrationBoundary>
-  );
-}
