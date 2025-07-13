@@ -1,26 +1,33 @@
-import ReactPaginate from 'react-paginate';
-import css from './Pagination.module.css';
+import ReactPaginate from "react-paginate";
+import css from "./Pagination.module.css";
+import {
+  MdOutlineKeyboardArrowLeft,
+  MdOutlineKeyboardArrowRight,
+} from "react-icons/md";
 
 interface PaginationProps {
-    currentPage: number;
-    onPageChange: (page: number) => void;
-    totalPages: number;
+  pageCount: number;
+  currentPage: number;
+  onPageChange: (selectedPage: number) => void;
 }
 
-export default function Pagination({currentPage, onPageChange, totalPages}: PaginationProps) {
-    if (totalPages < 1) return null;
-    return (
-        <ReactPaginate
-            pageCount={totalPages}
-            forcePage={currentPage - 1}
-            onPageChange={(e) => onPageChange(e.selected + 1)}
-            containerClassName={css.pagination}
-            activeClassName={css.active}
-            previousClassName={currentPage === 1 ? css.disabled : ''}
-            nextClassName={currentPage === totalPages ? css.disabled : ''}
-            disabledClassName={css.disabled}
-            nextLabel="→"
-            previousLabel="←"
-        />
-    );
+export default function Pagination({
+  pageCount,
+  currentPage,
+  onPageChange,
+}: PaginationProps) {
+  return (
+    <ReactPaginate
+      pageCount={pageCount}
+      pageRangeDisplayed={5}
+      marginPagesDisplayed={1}
+      onPageChange={({ selected }) => onPageChange(selected + 1)}
+      forcePage={currentPage - 1}
+      containerClassName={css.pagination}
+      activeClassName={css.active}
+      disabledClassName={css.disabled}
+      nextLabel={<MdOutlineKeyboardArrowRight size={16} />}
+      previousLabel={<MdOutlineKeyboardArrowLeft size={16} />}
+    />
+  );
 }

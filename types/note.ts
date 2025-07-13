@@ -1,10 +1,14 @@
 export interface Note {
-    id: number;
-    title: string;
-    content: string;
-    tag: 'Todo' | 'Work' | 'Personal' | 'Meeting' | 'Shopping';
-    createdAt: string;
-    updatedAt: string;
+  id: string;
+  title: string;
+  content: string;
+  tag: string;
+  createdAt: string;
+  updatedAt: string;
 }
-
-export type CreateNote = Omit<Note, 'id' | 'createdAt' | 'updatedAt'>;
+export interface NewNoteData {
+  title: string;
+  content?: string;
+  tag: Tag;
+}
+export type Tag = "Todo" | "Work" | "Personal" | "Meeting" | "Shopping";

@@ -1,44 +1,45 @@
-import { useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import css from './Modal.module.css';
-import * as React from 'react';
+import css from "./Modal.module.css";
+import { ReactNode, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 interface ModalProps {
-    children: React.ReactNode;
-    onClose: () => void;
+  onClose: () => void;
+  children: ReactNode;
 }
 
-export default function Modal({ children, onClose }: ModalProps) {
-    const backdropRef = useRef<HTMLDivElement>(null);
+export default function Modal({ onClose, children }: ModalProps) {
+  const handleBackDropClick = useCallback(
+    (evt: React.MouseEvent<HTMLDivElement>) => {
+      if (evt.target === evt.currentTarget) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
 
-    useEffect(() => {
-        document.body.style.overflow = 'hidden';
-        backdropRef.current?.focus();
+  useEffect(() => {
+    function handleEscKey(evt: KeyboardEvent) {
+      if (evt.code === "Escape") {
+        onClose();
+      }
+    }
+    document.addEventListener("keydown", handleEscKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleEscKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
 
-        return () => {
-            document.body.style.overflow = 'auto';
-        };
-    }, []);
-
-    return createPortal(
-        <div
-            ref={backdropRef}
-            className={css.backdrop}
-            role="dialog"
-            aria-modal="true"
-            tabIndex={-1}
-            onClick={(e: React.MouseEvent<HTMLDivElement>) => {
-                if (e.target === e.currentTarget) onClose();
-            }}
-            onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
-                if (e.key === 'Escape') onClose();
-            }}
-        >
-            <div className={css.modal}>
-                <button className={css.closeBtn} onClick={onClose}>×</button>
-                {children}
-            </div>
-        </div>,
-        document.body
-    );
+  return createPortal(
+    <div
+      className={css.backdrop}
+      onClick={handleBackDropClick}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className={css.modal}>{children}</div>
+    </div>,
+    document.body
+  );
 }

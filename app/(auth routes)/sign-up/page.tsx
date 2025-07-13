@@ -1,43 +1,67 @@
-'use client';
+"use client";
 
-import React from 'react';
-import css from './SignUp.module.css';
+import { AuthRequest, register } from "@/lib/api/clientApi";
+import { useAuthStore } from "@/lib/store/authStore";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
+import css from "./SignUp.module.css";
 
 export default function SignUp() {
-    return (
-        <main className={css.mainContent}>
-            <form className={css.form}>
-                <h1 className={css.formTitle}>Sign up</h1>
-                <div className={css.formGroup}>
-                    <label htmlFor="email">Email</label>
-                    <input
-                        id="email"
-                        type="email"
-                        name="email"
-                        className={css.input}
-                        required
-                    />
-                </div>
+  const router = useRouter();
+  const [error, setError] = useState("");
 
-                <div className={css.formGroup}>
-                    <label htmlFor="password">Password</label>
-                    <input
-                        id="password"
-                        type="password"
-                        name="password"
-                        className={css.input}
-                        required
-                    />
-                </div>
+  const setUser = useAuthStore((state) => state.setUser);
 
-                <div className={css.actions}>
-                    <button type="submit" className={css.submitButton}>
-                        Register
-                    </button>
-                </div>
+  const handleSubmit = async (formData: FormData) => {
+    try {
+      const formValues = Object.fromEntries(formData) as AuthRequest;
+      const user = await register(formValues);
+      if (user) {
+        setUser(user);
+        router.replace("/profile");
+      } else {
+        setError("Invalid email or password");
+      }
+    } catch (error) {
+      console.log("error", error);
+      setError("Oops... Something went wrong, try later");
+    }
+  };
 
-                <p className={css.error}>Error</p>
-            </form>
-        </main>
-    );
+  return (
+    <>
+      <h1 className={css.formTitle}>Sign up</h1>
+      <form action={handleSubmit} className={css.form}>
+        <div className={css.formGroup}>
+          <label htmlFor="email">Email</label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            required
+            className={css.input}
+          />
+        </div>
+
+        <div className={css.formGroup}>
+          <label htmlFor="password">Password</label>
+          <input
+            type="password"
+            name="password"
+            id="password"
+            required
+            className={css.input}
+          />
+        </div>
+
+        <div className={css.actions}>
+          <button type="submit" className={css.submitButton}>
+            Register
+          </button>
+        </div>
+      </form>
+      {error && <p>{error}</p>}
+    </>
+  );
 }
