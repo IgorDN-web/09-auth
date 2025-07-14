@@ -22,7 +22,7 @@ const AuthProvider = ({ children }: Props) => {
           if (user) setUser(user);
         })
         .catch(() => {
-          clearIsAuthenticated();
+         // clearIsAuthenticated();
         });
     };
     fetchUser();
